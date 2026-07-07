@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="260" viewBox="0 0 960 260" role="img" aria-labelledby="title desc">
+  <title id="title">WAL binary record format</title>
+  <desc id="desc">A binary WAL record with LSN, operation type, key length, value length, key bytes, and value bytes.</desc>
+  <rect width="960" height="260" fill="#f7f7f4"/>
+  <style>
+    .cell { stroke: #263238; stroke-width: 2; }
+    .header { fill: #d9ead3; }
+    .payload { fill: #cfe2f3; }
+    .text { font-family: Arial, sans-serif; fill: #1f2933; font-size: 17px; font-weight: 700; }
+    .small { font-family: Arial, sans-serif; fill: #44515c; font-size: 14px; }
+    .caption { font-family: Arial, sans-serif; fill: #1f2933; font-size: 20px; font-weight: 700; }
+  </style>
+  <text class="caption" x="40" y="48">A simplified append-only WAL record</text>
+
+  <rect class="cell header" x="40" y="82" width="170" height="80"/>
+  <text class="text" x="125" y="116" text-anchor="middle">LSN</text>
+  <text class="small" x="125" y="142" text-anchor="middle">8 bytes</text>
+
+  <rect class="cell header" x="210" y="82" width="130" height="80"/>
+  <text class="text" x="275" y="116" text-anchor="middle">OpType</text>
+  <text class="small" x="275" y="142" text-anchor="middle">1 byte</text>
+
+  <rect class="cell header" x="340" y="82" width="150" height="80"/>
+  <text class="text" x="415" y="116" text-anchor="middle">KeyLen</text>
+  <text class="small" x="415" y="142" text-anchor="middle">2 bytes</text>
+
+  <rect class="cell header" x="490" y="82" width="150" height="80"/>
+  <text class="text" x="565" y="116" text-anchor="middle">ValLen</text>
+  <text class="small" x="565" y="142" text-anchor="middle">4 bytes</text>
+
+  <rect class="cell payload" x="640" y="82" width="140" height="80"/>
+  <text class="text" x="710" y="116" text-anchor="middle">Key</text>
+  <text class="small" x="710" y="142" text-anchor="middle">KeyLen bytes</text>
+
+  <rect class="cell payload" x="780" y="82" width="140" height="80"/>
+  <text class="text" x="850" y="116" text-anchor="middle">Value</text>
+  <text class="small" x="850" y="142" text-anchor="middle">ValLen bytes</text>
+
+  <text class="small" x="40" y="204">The fixed-size header tells the recovery reader exactly how many payload bytes to read next.</text>
+  <text class="small" x="40" y="228">This is why variable-length keys and values can be replayed deterministically from a byte stream.</text>
+</svg>

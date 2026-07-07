@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="360" viewBox="0 0 960 360" role="img" aria-labelledby="title desc">
+  <title id="title">Write-Ahead Log recovery flow</title>
+  <desc id="desc">A sequence showing writes going first to the WAL, then memory, followed by crash recovery through log replay.</desc>
+  <rect width="960" height="360" fill="#f7f7f4"/>
+  <style>
+    .box { fill: #ffffff; stroke: #263238; stroke-width: 2; rx: 8; }
+    .accent { fill: #e7f0ea; stroke: #2d6a4f; }
+    .warn { fill: #fff2cc; stroke: #9a6700; }
+    .text { font-family: Arial, sans-serif; fill: #1f2933; font-size: 18px; }
+    .small { font-family: Arial, sans-serif; fill: #44515c; font-size: 14px; }
+    .arrow { stroke: #263238; stroke-width: 2.5; fill: none; marker-end: url(#arrowhead); }
+  </style>
+  <defs>
+    <marker id="arrowhead" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#263238"/>
+    </marker>
+  </defs>
+
+  <rect class="box" x="40" y="72" width="180" height="96"/>
+  <text class="text" x="130" y="112" text-anchor="middle">Client write</text>
+  <text class="small" x="130" y="140" text-anchor="middle">SET username = alex</text>
+
+  <path class="arrow" d="M220 120 H292"/>
+  <rect class="box accent" x="300" y="60" width="200" height="120"/>
+  <text class="text" x="400" y="100" text-anchor="middle">Append to WAL</text>
+  <text class="small" x="400" y="128" text-anchor="middle">LSN + operation + key/value</text>
+  <text class="small" x="400" y="152" text-anchor="middle">flush with fsync</text>
+
+  <path class="arrow" d="M500 120 H572"/>
+  <rect class="box" x="580" y="72" width="180" height="96"/>
+  <text class="text" x="670" y="112" text-anchor="middle">Apply in memory</text>
+  <text class="small" x="670" y="140" text-anchor="middle">map[key] = value</text>
+
+  <path class="arrow" d="M670 168 V222"/>
+  <rect class="box warn" x="580" y="230" width="180" height="76"/>
+  <text class="text" x="670" y="260" text-anchor="middle">Crash</text>
+  <text class="small" x="670" y="286" text-anchor="middle">memory is gone</text>
+
+  <path class="arrow" d="M580 268 H500"/>
+  <rect class="box accent" x="300" y="220" width="200" height="96"/>
+  <text class="text" x="400" y="258" text-anchor="middle">Replay WAL</text>
+  <text class="small" x="400" y="286" text-anchor="middle">scan records in LSN order</text>
+
+  <path class="arrow" d="M300 268 H220"/>
+  <rect class="box" x="40" y="220" width="180" height="96"/>
+  <text class="text" x="130" y="258" text-anchor="middle">Recovered state</text>
+  <text class="small" x="130" y="286" text-anchor="middle">same writes rebuilt</text>
+</svg>
