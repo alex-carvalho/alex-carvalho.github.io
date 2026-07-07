@@ -43,7 +43,7 @@ The important ordering is: the log must reach durable storage before the databas
 
 Some systems flush on every commit. Others group many commits into one flush to improve throughput. Some expose weaker durability settings where a committed transaction may be lost after a power failure. That is a performance and durability tradeoff.
 
-## WAL record anatomy
+## WAL record anatomy (simple representation)
 
 A WAL is a sequence of records. The exact format depends on the database, but a record usually contains enough information to validate, order, and replay a change.
 
