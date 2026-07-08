@@ -1,24 +1,29 @@
-title: "Alex Blog"
+title: "Alex Carvalho"
 author: "Alex Carvalho"
-description: "Space to add some content from subjects that I'm studying."
+description: "A space where I share notes and insights on the subjects I'm studying."
+avatar: "https://github.com/alex-carvalho.png"
 
-remote_theme: pages-themes/minimal@v0.2.0
-
-# email: "example@mail.com"
 github_username: "alex-carvalho"
 linkedin_username: "alex-carvalho-ac"
 
+navigation:
+  - title: "Latest"
+    url: "/"
+  - title: "Archive"
+    url: "/archive.html"
+  - title: "About"
+    url: "/about/"
 
 rss: rss
 
 kramdown:
   syntax_highlighter_opts:
-    disable: true
+    disable: false # enabled to let Jekyll/Rouge highlight code blocks
     
 plugins:
   - jekyll-feed
   - jekyll-sitemap
-  - jekyll-remote-theme
+  - jekyll-seo-tag
 
 titles_from_headings:
   strip_title: true
@@ -27,6 +32,6 @@ titles_from_headings:
 defaults:
   - scope:
       path: ""
-      type: post
+      type: posts
     values:
       tags: Other

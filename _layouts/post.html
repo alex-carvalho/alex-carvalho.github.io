@@ -1,0 +1,30 @@
+---
+layout: default
+---
+
+<article class="post-single">
+  <header class="post-single__header">
+    <p class="post-single__date">{{ page.date | date: "%-d %B %Y" }}</p>
+    <h1 class="post-single__title">{{ page.title }}</h1>
+    {% assign author = page.author | default: site.author %}
+    {% if author %}
+    <p class="post-single__author">by {{ author }}</p>
+    {% endif %}
+  </header>
+
+  {% if page.image %}
+  <div class="post-single__image" style="background-image: url('{{ page.image | relative_url }}');"></div>
+  {% endif %}
+
+  <div class="post-single__content">
+    {{ content }}
+  </div>
+
+  {% if page.tags %}
+  <footer class="post-single__footer">
+    <span class="post-single__tags">
+      tags: <em>{{ page.tags | join: "</em> - <em>" }}</em>
+    </span>
+  </footer>
+  {% endif %}
+</article>

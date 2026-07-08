@@ -1,5 +1,3 @@
 ---
-layout: default
+layout: home
 ---
-
-This is my study blog.

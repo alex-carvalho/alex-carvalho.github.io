@@ -2,6 +2,7 @@
 layout: post
 title: "Understanding Write-Ahead Logging (WAL)"
 tags: [Storage, Databases, Reliability]
+image: /assets/images/wal/wal_cover.png
 ---
 
 I have been studying storage internals, and Write-Ahead Logging (WAL) is one of those ideas that looks simple at first but explains a lot about how databases survive crashes.

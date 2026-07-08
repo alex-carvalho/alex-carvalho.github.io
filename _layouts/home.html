@@ -1,0 +1,33 @@
+---
+layout: default
+---
+
+<section class="listing">
+  {% assign stripped_content = content | strip | strip_newlines %}
+  {% if stripped_content != "" %}
+  <div class="home-intro">
+    {{ content }}
+  </div>
+  {% endif %}
+  {% for post in site.posts %}
+  <article class="listing-post">
+    <div class="listing-post__header">
+      <h2 class="listing-post__title">
+        <a href="{{ post.url | relative_url }}">{{ post.title }}</a>
+      </h2>
+      <p class="listing-post__subtitle">{{ post.date | date: "%-d %B %Y" }}</p>
+    </div>
+
+    {% if post.image %}
+    <a href="{{ post.url | relative_url }}" class="listing-post__image" style="background-image: url('{{ post.image | relative_url }}');"></a>
+    {% endif %}
+
+    <div class="listing-post__content">
+      {{ post.excerpt }}
+      <p>
+        <a href="{{ post.url | relative_url }}" class="button">Read More</a>
+      </p>
+    </div>
+  </article>
+  {% endfor %}
+</section>
