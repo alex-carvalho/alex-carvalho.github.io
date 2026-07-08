@@ -250,6 +250,24 @@ p {
   color: #333;
 }
 
+/* Post/Page Body Links */
+.post-single__content p a,
+.post-single__content li a,
+.page__content p a,
+.page__content li a {
+  color: #007acc;
+  text-decoration: underline;
+  font-weight: 600;
+}
+
+.post-single__content p a:hover,
+.post-single__content li a:hover,
+.page__content p a:hover,
+.page__content li a:hover {
+  color: #005f73;
+}
+
+
 .post-single__content h2,
 .post-single__content h3,
 .post-single__content h4 {
