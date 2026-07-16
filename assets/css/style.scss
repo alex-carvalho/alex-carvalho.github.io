@@ -244,6 +244,12 @@ p {
   box-shadow: 0 4px 20px rgba(0,0,0,0.06);
 }
 
+.post-single__image--contain {
+  background-color: #f8fafc;
+  background-repeat: no-repeat;
+  background-size: contain;
+}
+
 .post-single__content {
   font-size: 1.05rem;
   line-height: 1.75;
@@ -273,6 +279,26 @@ p {
 .post-single__content h4 {
   margin-top: 40px;
   margin-bottom: 16px;
+}
+
+.post-single__content ul,
+.post-single__content ol,
+.page__content ul,
+.page__content ol {
+  margin: 1.25rem 0;
+  padding-left: 1.75rem;
+}
+
+.post-single__content li + li,
+.page__content li + li {
+  margin-top: 0.5rem;
+}
+
+.post-single__content li > ul,
+.post-single__content li > ol,
+.page__content li > ul,
+.page__content li > ol {
+  margin: 0.5rem 0 0;
 }
 
 .post-single__content blockquote {

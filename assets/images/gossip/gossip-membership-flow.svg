@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="520" viewBox="0 0 1200 520" role="img" aria-labelledby="title desc">
+  <title id="title">Gossip membership propagation</title>
+  <desc id="desc">Three nodes exchange membership state with random peers. A stalled heartbeat is later suspected as a failure.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#6b7280"/>
+    </marker>
+    <style>
+      .bg{fill:#f8fafc}.node{fill:#fff;stroke:#2563eb;stroke-width:3}.dead{fill:#fff1f2;stroke:#dc2626;stroke-width:3;stroke-dasharray:8 6}.line{fill:none;stroke:#6b7280;stroke-width:3;marker-end:url(#arrow)}.label{font:600 23px system-ui, sans-serif;fill:#172554}.sub{font:17px system-ui, sans-serif;fill:#475569}.pill{fill:#dbeafe}.pilltext{font:600 15px system-ui, sans-serif;fill:#1d4ed8}.note{font:18px system-ui, sans-serif;fill:#334155}
+    </style>
+  </defs>
+  <rect class="bg" width="1200" height="520" rx="18"/>
+  <text x="60" y="64" class="label">Gossip spreads membership state through small, random exchanges</text>
+  <text x="60" y="94" class="sub">Each message carries what the sender currently knows; convergence is eventual, not instantaneous.</text>
+  <path class="line" d="M315 210 C420 130, 505 130, 570 195"/>
+  <path class="line" d="M600 295 C500 360, 400 360, 305 295"/>
+  <path class="line" d="M760 235 C850 210, 900 220, 962 250"/>
+  <g transform="translate(110 170)">
+    <circle class="node" cx="105" cy="85" r="85"/>
+    <text x="105" y="78" text-anchor="middle" class="label">Node A</text>
+    <text x="105" y="108" text-anchor="middle" class="sub">hb: 42</text>
+  </g>
+  <g transform="translate(525 170)">
+    <circle class="node" cx="105" cy="85" r="85"/>
+    <text x="105" y="78" text-anchor="middle" class="label">Node B</text>
+    <text x="105" y="108" text-anchor="middle" class="sub">hb: 19</text>
+  </g>
+  <g transform="translate(940 170)">
+    <circle class="dead" cx="105" cy="85" r="85"/>
+    <text x="105" y="72" text-anchor="middle" class="label">Node C</text>
+    <text x="105" y="102" text-anchor="middle" class="sub">heartbeat stalled</text>
+    <text x="105" y="130" text-anchor="middle" class="sub">→ suspect / dead</text>
+  </g>
+  <rect class="pill" x="385" y="126" width="185" height="32" rx="16"/>
+  <text x="477" y="148" text-anchor="middle" class="pilltext">state exchange</text>
+  <rect class="pill" x="380" y="361" width="218" height="32" rx="16"/>
+  <text x="489" y="383" text-anchor="middle" class="pilltext">random peer selection</text>
+  <rect class="pill" x="808" y="199" width="188" height="32" rx="16"/>
+  <text x="902" y="221" text-anchor="middle" class="pilltext">failure information</text>
+  <text x="60" y="465" class="note">A node only needs a seed peer to enter the cluster; later updates can discover the rest of the membership.</text>
+</svg>
