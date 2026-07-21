@@ -1,0 +1,304 @@
+Deep Dive on Grafana Loki
+
+Goal of the series:
+    Build a mental model of Loki from first principles:
+    why it avoids full-text indexing, how logs move through the system,
+    how the ring distributes work, how storage is organized, how queries are
+    executed, and what changes when Loki is operated as part of a real
+    observability platform.
+
+Part 1
+Why Loki Exists - Why doesn't Grafana Loki index log contents?
+    Core question:
+        Why does Loki index labels instead of every word in every log line?
+
+    Main idea:
+        Loki makes logs cheaper to store and operate by indexing metadata about
+        streams, then scanning compressed chunks only after labels narrow the
+        search space.
+
+    Topics:
+        The logging problem at scale
+        Why Elasticsearch is not always the right solution for log storage
+        Loki's philosophy:
+            Labels, not full-text indexing
+            Cheap object storage for log contents
+            Query-time scanning after label selection
+        The fundamental concepts:
+            Tenant
+            Labels
+            Streams
+            Chunks
+            Object storage
+        Label cardinality:
+            Good labels: stable, low-cardinality dimensions
+            Bad labels: request_id, trace_id, user_id, high-cardinality values
+        Structured metadata:
+            Just metion that loki has mechamnis to improve search  withow creating many streas, that will cover in future post
+
+Part 2
+The Life of a Log - What really happens when a log reaches Loki?
+    Core question:
+        What path does a log line take from an application to long-term storage?
+
+    Main idea:
+        The write path is a sequence of validation, routing, replication,
+        buffering, WAL persistence, chunk creation, and eventual flushing to
+        object storage.
+
+    Flow:
+        Application / Alloy / OpenTelemetry Collector / Promtail
+            -> Distributor
+            -> Validation
+            -> Label normalization
+            -> Tenant limits and rate limits
+            -> Ring lookup
+            -> Replication
+            -> Ingester
+            -> WAL
+            -> In-memory stream
+            -> Head chunk
+            -> Compressed chunk
+            -> Flush queue
+            -> Object storage
+            -> TSDB index files
+
+    Topics:
+        Push API and log streams
+        What the distributor does before forwarding data
+        Why distributors are stateless
+        How the distributor chooses ingesters
+        Replication factor
+        Quorum acknowledgement
+        Why WAL and replication solve different parts of the durability problem
+        How ingesters build chunks in memory
+        When chunks are cut, compressed, and flushed
+        What can still go wrong:
+            Too many labels
+            Too many tiny streams
+            Old or out-of-order timestamps
+            Ingester restart before data is flushed
+
+    Possible diagram:
+        Write-path sequence diagram from client to object storage.
+
+Part 3
+The Ring and Distributed Coordination - How does Loki scale without a central leader?
+    Core question:
+        How can any distributor know where a stream should be written?
+
+    Main idea:
+        Loki uses a hash ring and consistent hashing so many components can
+        independently make the same routing decision without asking a leader.
+
+    Topics:
+        Why distributed systems are hard:
+            Membership changes
+            Node failures
+            Uneven load
+            Partial knowledge
+        The ring:
+            Tokens
+            Hash ranges
+            Virtual nodes
+            Stream hashing
+        Consistent hashing:
+            Why adding or removing nodes moves only part of the keyspace
+        Replication:
+            Choosing multiple ingesters for the same stream
+            Replication factor 3 as the common mental model
+        Quorum:
+            floor(replication_factor / 2) + 1
+            Why write acknowledgement does not require every replica
+        Lifecycler:
+            PENDING
+            JOINING
+            ACTIVE
+            LEAVING
+            UNHEALTHY
+        Ring backends:
+            Memberlist
+            Consul or other KV stores
+        Failure detection:
+            Heartbeats
+            Suspicion vs certainty
+            What happens when an ingester disappears
+
+    Connection with previous posts:
+        Reuse the gossip protocol mental model:
+        membership can be eventually consistent while write routing still
+        remains deterministic enough for the system to operate.
+
+Part 4
+Storage Internals - How does Loki store petabytes of logs?
+    Core question:
+        What exactly is stored when Loki flushes data?
+
+    Main idea:
+        Loki stores compressed log chunks and a compact index that maps label
+        queries to chunk references. The index tells Loki where to look; the
+        chunks contain the actual log lines.
+
+    Topics:
+        Object storage as the long-term source of truth
+        Two main stored data types:
+            Chunks
+            Index files
+        Chunk layout:
+            Stream labels
+            Time range
+            Compressed blocks
+            Entries
+            Checksums
+            Structured metadata
+        TSDB index:
+            Why TSDB is the recommended index format
+            How it differs from indexing full log contents
+            Why it is useful for label queries and sharding
+        Index shipper:
+            How index files are shipped to object storage
+        Index gateway:
+            Why queries use a service for metadata lookups
+        Compactor:
+            Merging many index files into fewer files
+            Improving lookup efficiency
+            Applying retention and delete requests
+        Retention:
+            Time-based retention
+            Stream-specific retention
+        Delete requests:
+            Why deleting logs is harder than deleting one row from a database
+        Historical note:
+            BoltDB Shipper as legacy context, not the main path to focus on.
+
+    Possible diagram:
+        Object storage layout with chunks, TSDB index files, compactor, and
+        index gateway.
+
+Part 5
+Reading Billions of Logs - How does Loki query logs without indexing everything?
+    Core question:
+        How can Loki answer a query when it does not have a full-text index?
+
+    Main idea:
+        Loki first uses labels and time ranges to find candidate chunks, then
+        scans only those chunks. Query acceleration is about reducing the number
+        of chunks and bytes that must be touched.
+
+    Flow:
+        Grafana / LogCLI
+            -> Query frontend
+            -> Query scheduler
+            -> Querier
+            -> Ingester query for recent in-memory data
+            -> Index gateway lookup for stored data
+            -> Object storage chunk reads
+            -> Chunk iterators
+            -> LogQL filters and parsers
+            -> Deduplication
+            -> Merge results
+            -> Stream results back to the client
+
+    Topics:
+        LogQL selector as the first pruning step
+        Time range selection
+        Query planning
+        Query splitting
+        Query sharding
+        Query fairness between tenants
+        Reading from ingesters for recent data
+        Reading from object storage for flushed data
+        Index lookup:
+            Label selectors
+            Chunk references
+            Why the index points to chunks, not matching lines
+        Chunk iteration:
+            Decompression
+            Line filtering
+            Parsers
+            Metric queries derived from logs
+        Deduplication:
+            Why replicas can return duplicate log lines
+        Caching:
+            Result cache
+            Index cache
+            Chunk cache
+            Negative caching for log queries
+        Structured metadata:
+            Why trace_id is usually not a label
+            Why not simply index trace_id?
+        Bloom filters:
+            Experimental / large-scale query acceleration
+            Useful for needle-in-a-haystack queries
+            Helps skip chunks that probably do not contain a metadata pair
+
+    Possible diagram:
+        Read-path sequence diagram from query frontend to queriers, ingesters,
+        index gateway, and object storage.
+
+Part 6
+Operating Loki in a Real Observability Platform
+    Core question:
+        What changes when Loki moves from an architecture diagram to a real
+        production observability stack?
+
+    Main idea:
+        Running Loki well is about choosing the right deployment mode, keeping
+        labels under control, setting tenant limits, scaling read and write
+        paths independently, and connecting logs with metrics and traces.
+
+    Topics:
+        Deployment modes:
+            Single binary
+            Simple scalable deployment:
+                read
+                write
+                backend
+            Microservices mode
+        Component scaling:
+            Distributors for ingestion traffic
+            Ingesters for stream/chunk ownership
+            Queriers for query execution
+            Query frontends and schedulers for query control
+            Index gateways for TSDB metadata access
+            Compactors for index compaction, retention, and deletes
+        Multi-tenancy:
+            X-Scope-OrgID
+            Tenant isolation
+            Per-tenant limits
+        Operational controls:
+            Rate limits
+            Retention policies
+            Query limits
+            Query fairness
+            Shuffle sharding
+            Caching
+        Ruler:
+            Alerting and recording rules over LogQL
+            Remote rule evaluation through the query frontend
+        Meta-monitoring:
+            Important Loki metrics to watch
+            Ingestion failures
+            Ingester WAL replay
+            Chunk flush latency
+            Object storage errors
+            Query latency
+            Compactor health
+        Observability stack:
+            OpenTelemetry
+                -> Alloy
+                -> Loki for logs
+                -> Tempo for traces
+                -> Mimir or Prometheus for metrics
+                -> Grafana for visualization and correlation
+        Correlation:
+            Trace IDs as structured metadata
+            Linking logs to traces
+            Using labels to find the right stream and metadata to find the
+            specific event
+
+    Closing idea:
+        Loki is not only a log database. It is a set of tradeoffs:
+        cheaper storage, label-first indexing, distributed ownership, and
+        query-time scanning. The architecture makes sense once those tradeoffs
+        are visible.
